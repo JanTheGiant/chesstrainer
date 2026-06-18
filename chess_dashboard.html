@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jan's Chess Training</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: #0f172a;
+    color: #e2e8f0;
+    min-height: 100vh;
+  }
+
+  /* Header */
+  header {
+    background: #1e293b;
+    border-bottom: 2px solid #10b981;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .logo {
+    font-size: 28px;
+  }
+  header h1 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #f1f5f9;
+  }
+  header p {
+    font-size: 12px;
+    color: #94a3b8;
+    margin-top: 2px;
+  }
+  .rating-badge {
+    margin-left: auto;
+    background: #10b981;
+    color: #022c22;
+    font-weight: 800;
+    font-size: 14px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .rating-badge:hover { background: #34d399; }
+
+  /* Tabs */
+  nav {
+    display: flex;
+    background: #1e293b;
+    padding: 0 24px;
+    gap: 4px;
+    border-bottom: 1px solid #334155;
+  }
+  nav button {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    padding: 14px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+  }
+  nav button:hover { color: #e2e8f0; }
+  nav button.active {
+    color: #10b981;
+    border-bottom-color: #10b981;
+  }
+
+  /* Main content */
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 28px 24px;
+  }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* Cards */
+  .card {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+  }
+  .card h2 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #f1f5f9;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #cbd5e1;
+    margin-bottom: 10px;
+    margin-top: 16px;
+  }
+  .card p {
+    font-size: 14px;
+    color: #94a3b8;
+    line-height: 1.6;
+  }
+
+  /* Checklist */
+  .checklist { display: flex; flex-direction: column; gap: 10px; }
+  .check-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 16px;
+    background: #0f172a;
+    border-radius: 8px;
+    border: 1px solid #334155;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .check-item:hover { border-color: #10b981; }
+  .check-item.done {
+    border-color: #10b981;
+    background: #022c22;
+  }
+  .check-item.done .check-label { color: #86efac; }
+  .check-item.done .check-desc { color: #4ade80; opacity: 0.7; }
+  .check-box {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    border: 2px solid #475569;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+    font-size: 14px;
+  }
+  .check-item.done .check-box {
+    background: #10b981;
+    border-color: #10b981;
+    color: white;
+  }
+  .check-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #e2e8f0;
+  }
+  .check-desc {
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 1px;
+  }
+
+  /* Progress bar */
+  .progress-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 16px;
+  }
+  .progress-bar-bg {
+    flex: 1;
+    height: 8px;
+    background: #334155;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #10b981, #34d399);
+    border-radius: 4px;
+    transition: width 0.4s ease;
+  }
+  .progress-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #10b981;
+    min-width: 40px;
+    text-align: right;
+  }
+
+  /* Today date */
+  .today-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+  .today-date {
+    font-size: 13px;
+    color: #64748b;
+  }
+
+  /* Notes textarea */
+  .notes-input {
+    width: 100%;
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 12px;
+    color: #e2e8f0;
+    font-size: 14px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 90px;
+    margin-top: 12px;
+    line-height: 1.5;
+    transition: border-color 0.2s;
+  }
+  .notes-input:focus {
+    outline: none;
+    border-color: #10b981;
+  }
+  .notes-input::placeholder { color: #475569; }
+
+  /* Buttons */
+  .btn {
+    background: #10b981;
+    color: #022c22;
+    border: none;
+    padding: 9px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-top: 10px;
+  }
+  .btn:hover { background: #34d399; }
+  .btn-sm {
+    padding: 5px 12px;
+    font-size: 12px;
+    border-radius: 6px;
+  }
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid #334155;
+    color: #94a3b8;
+  }
+  .btn-ghost:hover { background: #1e293b; color: #e2e8f0; }
+
+  /* Rating input modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 16px;
+    padding: 28px;
+    width: 320px;
+    text-align: center;
+  }
+  .modal h3 { font-size: 18px; margin-bottom: 8px; }
+  .modal p { font-size: 13px; color: #64748b; margin-bottom: 20px; }
+  .rating-field {
+    width: 100%;
+    background: #0f172a;
+    border: 2px solid #10b981;
+    border-radius: 8px;
+    padding: 12px;
+    color: #10b981;
+    font-size: 28px;
+    font-weight: 800;
+    text-align: center;
+    font-family: inherit;
+    margin-bottom: 16px;
+  }
+  .rating-field:focus { outline: none; }
+
+  /* Chart */
+  .chart-wrap {
+    position: relative;
+    width: 100%;
+    height: 180px;
+    margin-top: 8px;
+  }
+  svg.rating-chart {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  /* Stat boxes */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .stat-box {
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 10px;
+    padding: 14px;
+    text-align: center;
+  }
+  .stat-num {
+    font-size: 28px;
+    font-weight: 800;
+    color: #10b981;
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 11px;
+    color: #64748b;
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* Past notes log */
+  .log-entry {
+    border-bottom: 1px solid #1e293b;
+    padding: 14px 0;
+  }
+  .log-entry:last-child { border-bottom: none; }
+  .log-date {
+    font-size: 11px;
+    color: #10b981;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+  }
+  .log-rating {
+    display: inline-block;
+    background: #022c22;
+    color: #10b981;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 1px 8px;
+    border-radius: 10px;
+    margin-left: 8px;
+  }
+  .log-text {
+    font-size: 14px;
+    color: #cbd5e1;
+    line-height: 1.5;
+    white-space: pre-wrap;
+  }
+  .log-checks {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 6px;
+  }
+  .log-check-chip {
+    background: #022c22;
+    color: #4ade80;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+  }
+
+  /* Lessons */
+  .problem-card {
+    background: #0f172a;
+    border-left: 3px solid #f59e0b;
+    border-radius: 0 8px 8px 0;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+  }
+  .problem-card.critical { border-left-color: #ef4444; }
+  .problem-card.medium { border-left-color: #f59e0b; }
+  .problem-card.good { border-left-color: #10b981; }
+  .problem-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #f1f5f9;
+    margin-bottom: 6px;
+  }
+  .problem-detail {
+    font-size: 13px;
+    color: #94a3b8;
+    line-height: 1.6;
+  }
+  .badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 10px;
+    margin-bottom: 6px;
+    letter-spacing: 0.05em;
+  }
+  .badge.red { background: #7f1d1d; color: #fca5a5; }
+  .badge.amber { background: #78350f; color: #fcd34d; }
+  .badge.green { background: #022c22; color: #4ade80; }
+
+  .week-plan { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+  .week-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 12px;
+    background: #0f172a;
+    border-radius: 8px;
+    font-size: 13px;
+  }
+  .week-label {
+    font-weight: 700;
+    color: #10b981;
+    min-width: 70px;
+    flex-shrink: 0;
+  }
+  .week-text { color: #94a3b8; line-height: 1.4; }
+
+  .concept-box {
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 12px;
+  }
+  .concept-box h4 {
+    font-size: 14px;
+    font-weight: 700;
+    color: #f59e0b;
+    margin-bottom: 8px;
+  }
+  .concept-box p { font-size: 13px; color: #94a3b8; line-height: 1.6; }
+  .concept-box p + p { margin-top: 8px; }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #475569;
+    font-size: 14px;
+  }
+  .empty-state .emoji { font-size: 36px; margin-bottom: 10px; }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    nav button { padding: 12px 10px; font-size: 13px; }
+    .stats-row { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  /* ── Beat Dom tab ───────────────────────────────────────── */
+  .countdown-wrap {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    margin: 8px 0 16px;
+  }
+  .countdown-box {
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 16px 20px;
+    text-align: center;
+    min-width: 76px;
+  }
+  .countdown-num {
+    font-size: 38px;
+    font-weight: 800;
+    color: #f59e0b;
+    line-height: 1;
+  }
+  .countdown-unit {
+    font-size: 11px;
+    color: #64748b;
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .dom-tip {
+    background: #1c1407;
+    border-left: 3px solid #f59e0b;
+    border-radius: 0 8px 8px 0;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+  }
+  .dom-tip .tip-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #fcd34d;
+    margin-bottom: 4px;
+  }
+  .dom-tip .tip-body {
+    font-size: 13px;
+    color: #ca8a04;
+    line-height: 1.5;
+  }
+  .dom-line {
+    font-family: 'Courier New', monospace;
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 13px;
+    color: #86efac;
+    margin: 8px 0;
+    letter-spacing: 0.02em;
+  }
+  .weakness-list { display: flex; flex-direction: column; gap: 8px; }
+  .weakness-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 10px 14px;
+    background: #0f172a;
+    border-radius: 8px;
+    border: 1px solid #334155;
+  }
+  .weakness-num {
+    font-size: 20px;
+    font-weight: 800;
+    color: #ef4444;
+    min-width: 24px;
+    line-height: 1.3;
+    flex-shrink: 0;
+  }
+  .weakness-text {
+    font-size: 13px;
+    color: #94a3b8;
+    line-height: 1.5;
+  }
+  .ref-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .ref-table th {
+    background: #0f172a;
+    color: #64748b;
+    padding: 8px 12px;
+    text-align: left;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid #334155;
+  }
+  .ref-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #1e293b;
+    color: #cbd5e1;
+    vertical-align: top;
+    line-height: 1.4;
+  }
+  .ref-table tr:last-child td { border-bottom: none; }
+  .ref-table td:first-child { color: #94a3b8; }
+  .dom-prep-check {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 16px;
+    background: #0f172a;
+    border-radius: 8px;
+    border: 1px solid #334155;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    margin-bottom: 8px;
+  }
+  .dom-prep-check:hover { border-color: #f59e0b; }
+  .dom-prep-check.done {
+    border-color: #f59e0b;
+    background: #1c1407;
+  }
+  .dom-prep-check.done .dom-prep-label { color: #fcd34d; }
+  .dom-prep-check.done .dom-prep-desc { color: #ca8a04; opacity: 0.8; }
+  .dom-check-box {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    border: 2px solid #475569;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+    font-size: 14px;
+  }
+  .dom-prep-check.done .dom-check-box {
+    background: #f59e0b;
+    border-color: #f59e0b;
+    color: #1c1407;
+    font-weight: 800;
+  }
+  .dom-prep-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #e2e8f0;
+  }
+  .dom-prep-desc {
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 1px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">♟️</div>
+  <div>
+    <h1>Jan's Chess Training</h1>
+    <p>JanTheGiant · 5-minute focus</p>
+  </div>
+  <button class="rating-badge" onclick="openRatingModal()" id="current-rating-btn">Log Rating</button>
+</header>
+
+<nav>
+  <button class="active" onclick="showTab('today', this)">📅 Today</button>
+  <button onclick="showTab('lessons', this)">📚 Lessons</button>
+  <button onclick="showTab('progress', this)">📈 Progress</button>
+  <button onclick="showTab('log', this)">📝 Notes Log</button>
+  <button onclick="showTab('dom', this)">⚔️ Beat Dom</button>
+</nav>
+
+<main>
+
+  <!-- TODAY TAB -->
+  <div class="tab-content active" id="tab-today">
+    <div class="card">
+      <div class="today-header">
+        <h2>🎯 Today's Session</h2>
+        <span class="today-date" id="today-date"></span>
+      </div>
+      <div class="checklist" id="checklist">
+        <div class="check-item" onclick="toggleCheck('puzzles')" id="check-puzzles">
+          <div class="check-box" id="box-puzzles"></div>
+          <div>
+            <div class="check-label">15 min puzzles</div>
+            <div class="check-desc">Lichess.org → Puzzles, or Chess.com Puzzle Rush (survival)</div>
+          </div>
+        </div>
+        <div class="check-item" onclick="toggleCheck('backrank')" id="check-backrank">
+          <div class="check-box" id="box-backrank"></div>
+          <div>
+            <div class="check-label">Back-rank drill</div>
+            <div class="check-desc">Search "back rank mate" on Lichess, do 5 puzzles</div>
+          </div>
+        </div>
+        <div class="check-item" id="check-endgame" onclick="toggleCheck('endgame')">
+          <div class="check-box" id="box-endgame"></div>
+          <div>
+            <div class="check-label">Endgame drill <span style="color:#64748b;font-weight:400;font-size:12px">(Wed & Sat)</span></div>
+            <div class="check-desc">Lichess → Learn → Endgames · K+P vs K, or Rook endgame rule</div>
+          </div>
+        </div>
+        <div class="check-item" id="check-review" onclick="toggleCheck('review')">
+          <div class="check-box" id="box-review"></div>
+          <div>
+            <div class="check-label">Game review <span style="color:#64748b;font-weight:400;font-size:12px">(Sunday)</span></div>
+            <div class="check-desc">Pick one loss, find the key moment in Chess.com Game Review</div>
+          </div>
+        </div>
+      </div>
+      <div class="progress-row">
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+        </div>
+        <div class="progress-label" id="progress-text">0/4</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📝 Session Notes</h2>
+      <textarea class="notes-input" id="today-notes" placeholder="What did you work on today? What did you notice? Any patterns you spotted in your games..."></textarea>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="btn" onclick="saveToday()">Save Today's Session</button>
+        <span id="save-msg" style="font-size:13px;color:#10b981;display:none">✓ Saved!</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>💡 Today's Focus</h2>
+      <div class="problem-card critical" id="today-tip">
+        <span class="badge red">WEEK 1–2 PRIORITY</span>
+        <div class="problem-title">Back-rank awareness</div>
+        <div class="problem-detail">Before every move in your games today: glance at your back rank. Is there a rook or queen that could slide in and mate you? If yes, play h3 (or h6 as Black) to create an escape square first.</div>
+      </div>
+      <p style="font-size:13px;color:#64748b;margin-top:12px">The checklist below shows which week you're in — the tip above will match your current training focus.</p>
+    </div>
+  </div>
+
+  <!-- LESSONS TAB -->
+  <div class="tab-content" id="tab-lessons">
+    <div class="card">
+      <h2>⚠️ Your 4 Main Problems</h2>
+      <p style="margin-bottom:16px">Based on analysis of ~80 of your games (May 27 – June 18, 2026).</p>
+
+      <div class="problem-card critical">
+        <span class="badge red">CRITICAL — 3 games lost this way</span>
+        <div class="problem-title">1. Back-rank blindness</div>
+        <div class="problem-detail">You were up material in games vs INDRAHS (Qe1#), aoakgul (Qg2#), and Burhan1610 (axb1=Q#) — and lost all three to back-rank mates. You never checked if your king's escape square was covered. One habit fix saves you 5+ rating points per week: after your opponent moves, look at your back rank before calculating anything else.</div>
+      </div>
+
+      <div class="problem-card critical">
+        <span class="badge red">CRITICAL — happening every session</span>
+        <div class="problem-title">2. Hanging pieces / missing one-movers</div>
+        <div class="problem-detail">vs fidz76: opponent played Qxd8+ and you missed your queen was hanging. vs slimmy17: opponent played Bxd2, hung knight, resigned. vs Twaterson: left h7 undefended, Qxh7#. Before every move ask: "Can my opponent take something for free right now?"</div>
+      </div>
+
+      <div class="problem-card medium">
+        <span class="badge amber">IMPORTANT — capping your progress</span>
+        <div class="problem-title">3. The Englund Gambit as Black (1.d4 e5)</div>
+        <div class="problem-detail">You play this in over 15 games. It sometimes wins with tricks (vs Himanshukewate you won a piece in 7 moves), but when opponents respond correctly you end up with a misplaced queen and a bad structure. It's gambling, not improving. Switch to the King's Indian: 1.d4 Nf6 2.c4 g6 3.Nc3 Bg7. Castle fast, counterattack later.</div>
+      </div>
+
+      <div class="problem-card medium">
+        <span class="badge amber">IMPORTANT — losing won positions</span>
+        <div class="problem-title">4. Time trouble in endgames</div>
+        <div class="problem-detail">You lost on time vs asimaniuk (44 moves), JIMMY-420, Macinsuperpower (46 moves), takesandthentakes (63 moves) — all while having playable positions. Endgame technique (knowing how to convert quickly) saves the clock.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📅 Weekly Training Focus</h2>
+      <div class="week-plan">
+        <div class="week-row">
+          <span class="week-label">Week 1–2</span>
+          <span class="week-text"><strong style="color:#e2e8f0">Back-rank mates.</strong> Search "back rank" on Lichess puzzles. Do 5 per day on top of your regular puzzles. In every game: check escape squares before moving.</span>
+        </div>
+        <div class="week-row">
+          <span class="week-label">Week 3–4</span>
+          <span class="week-text"><strong style="color:#e2e8f0">Knight forks and pins.</strong> Search "fork" and "pin" on Lichess. Knights jump over pieces — practice seeing where one could land and attack two things at once.</span>
+        </div>
+        <div class="week-row">
+          <span class="week-label">Month 2</span>
+          <span class="week-text"><strong style="color:#e2e8f0">Discovered attacks and skewers.</strong> Deeper tactical patterns. By now the back-rank habit should be automatic.</span>
+        </div>
+        <div class="week-row">
+          <span class="week-label">Ongoing</span>
+          <span class="week-text"><strong style="color:#e2e8f0">One game review per Sunday.</strong> Open your worst loss on Chess.com Game Review. Find the one move where it went wrong. 10 minutes max.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>♟️ Endgame Concepts</h2>
+
+      <div class="concept-box">
+        <h4>King + Pawn vs King — The Opposition</h4>
+        <p>When only kings and pawns are left, your king must lead the pawn. "Opposition" means the two kings face each other with one square between them, and it's the opponent's turn — forcing them to step aside.</p>
+        <p>Example: White pawn on e5, White king on e4, Black king on e6. White plays Ke5 — Black must move aside (Kd6 or Kf6), and the pawn advances. Without this, even a winning pawn position can draw.</p>
+        <p><strong style="color:#10b981">Practice:</strong> Lichess → Learn → Endgames → "King and Pawn"</p>
+      </div>
+
+      <div class="concept-box">
+        <h4>Rook Behind the Passed Pawn</h4>
+        <p>A passed pawn has no enemy pawn blocking it or on adjacent files — it can potentially run to promotion.</p>
+        <p><strong style="color:#10b981">Your passed pawn:</strong> Put your rook <em>behind</em> it. As the pawn marches from e5 → e6 → e7, your rook's scope grows. Rook on e1, pawn on e5 → pawn advances, rook follows and gains power.</p>
+        <p><strong style="color:#ef4444">Opponent's passed pawn:</strong> Put your rook <em>in front</em> of it to block. Rook on e8 stops a pawn on e5 cold.</p>
+        <p>This came up in your losses vs gaindmaster and takesandthentakes.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🏁 Opening Reference</h2>
+      <h3>As White (keep your current system ✓)</h3>
+      <div class="problem-card good">
+        <div class="problem-title">1.d4 → c4 → Nc3 → Nf3 → Bg5</div>
+        <div class="problem-detail">Your setup is solid. Two things to remember: (1) After Bg5 and opponent plays ...h6, retreat to Bh4 — don't trade unless you gain something. (2) Castle early. Several losses came from a delayed king.</div>
+      </div>
+      <h3>As Black vs 1.e4</h3>
+      <div class="problem-card good">
+        <div class="problem-title">1...e5 → Nc6 → Bc5 or Nf6 (Italian / Four Knights)</div>
+        <div class="problem-detail">Your current approach here is fine. Keep it.</div>
+      </div>
+      <h3>As Black vs 1.d4 (replace Englund)</h3>
+      <div class="problem-card medium">
+        <span class="badge amber">SWITCH TO THIS</span>
+        <div class="problem-title">King's Indian Defense: 1...Nf6 2...g6 3...Bg7 4...d6 5...0-0</div>
+        <div class="problem-detail">After 1.d4, play Nf6. After 2.c4, play g6. Fianchetto your bishop on g7, castle quickly, then counterattack with ...d6 and ...e5 later. You never go wrong in the opening, and the positions are dynamic and fun. Watch one 10-minute YouTube intro: search "King's Indian Defense basics for beginners".</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROGRESS TAB -->
+  <div class="tab-content" id="tab-progress">
+    <div class="stats-row" id="stats-row">
+      <div class="stat-box">
+        <div class="stat-num" id="stat-streak">0</div>
+        <div class="stat-label">Day streak</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num" id="stat-sessions">0</div>
+        <div class="stat-label">Total sessions</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num" id="stat-rating">—</div>
+        <div class="stat-label">Current rating</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📈 Rating History</h2>
+      <div class="chart-wrap" id="chart-wrap">
+        <div class="empty-state" id="chart-empty">
+          <div class="emoji">📊</div>
+          <p>Log your rating after sessions to see it here.<br>Click "Log Rating" in the top bar after each training day.</p>
+        </div>
+        <svg class="rating-chart" id="rating-svg" style="display:none"></svg>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>✅ Sessions This Week</h2>
+      <div id="week-grid" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px"></div>
+    </div>
+
+    <div class="card">
+      <h2>🎯 3-Month Goal</h2>
+      <p>Based on your games, fixing back-rank awareness and doing daily puzzles should bring you to <strong style="color:#10b981">1200–1250</strong> in 5-minute games within 3 months. The ceiling for pure tactics improvement at your level is huge — most losses are self-inflicted, not outplayed.</p>
+      <div style="margin-top:16px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:#64748b;margin-bottom:6px">
+          <span>Start: ~1067</span>
+          <span>Goal: 1250</span>
+        </div>
+        <div class="progress-bar-bg" style="height:12px">
+          <div class="progress-bar-fill" id="goal-progress" style="width:0%"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BEAT DOM TAB -->
+  <div class="tab-content" id="tab-dom">
+
+    <!-- Countdown -->
+    <div class="card">
+      <h2>⏳ Match Countdown</h2>
+      <p style="font-size:13px;color:#64748b;margin-bottom:12px">Dom Derosa (Mr_noochie) · Target match date: <strong style="color:#f59e0b">~August 18, 2026</strong></p>
+      <div class="countdown-wrap" id="dom-countdown">
+        <div class="countdown-box"><div class="countdown-num" id="cd-days">—</div><div class="countdown-unit">Days</div></div>
+        <div class="countdown-box"><div class="countdown-num" id="cd-weeks">—</div><div class="countdown-unit">Weeks</div></div>
+        <div class="countdown-box"><div class="countdown-num" id="cd-sessions">—</div><div class="countdown-unit">Prep sessions left</div></div>
+      </div>
+      <div class="dom-tip">
+        <div class="tip-title">⚡ Bottom line</div>
+        <div class="tip-body">Dom rates 900–1040. You peaked at 1162. You are the better player — the only way you lose is by beating yourself. Stay calm, don't hang pieces, simplify when ahead.</div>
+      </div>
+    </div>
+
+    <!-- Opening Cheatsheet -->
+    <div class="card">
+      <h2>📋 Opening Cheatsheet</h2>
+
+      <h3 style="color:#ef4444;margin-bottom:8px">When Dom has White</h3>
+      <p style="font-size:13px;color:#64748b;margin-bottom:8px">He <strong style="color:#e2e8f0">always</strong> plays 1.e4 → 2.Nf3 → 3.d4 (Scotch). Every. Single. Game.</p>
+      <div class="dom-tip" style="border-left-color:#ef4444;background:#1a0505">
+        <div class="tip-title" style="color:#fca5a5">Your response — play from memory:</div>
+        <div class="dom-line">1.e4 e5  2.Nf3 Nc6  3.d4 exd4  4.Nxd4 Nf6  5.Nxc6 bxc6</div>
+        <div class="tip-body" style="color:#fca5a5">Then: 6...d5, 7...Bd6. Solid development, no queen misplacement. This costs you ZERO clock time once you know it.</div>
+      </div>
+      <div class="dom-tip" style="border-left-color:#ef4444;background:#1a0505;margin-top:-4px">
+        <div class="tip-title" style="color:#fca5a5">Italian fallback (if he plays 3.Bc4):</div>
+        <div class="dom-line">3.Bc4 Bc5  4.Nc3 Nf6  5.d3 → develop normally</div>
+        <div class="tip-body" style="color:#fca5a5">Slow maneuvering game. Dom's aggression doesn't pay off here. Just keep everything safe.</div>
+      </div>
+      <div style="margin-top:8px;padding:10px 14px;background:#1a0505;border-radius:8px;border:1px solid #7f1d1d">
+        <span style="font-size:13px;color:#fca5a5">🚫 Do NOT play 1...c5 (Sicilian) against Dom — he knows it better than you, and those positions eat your clock.</span>
+      </div>
+
+      <h3 style="color:#10b981;margin-top:20px;margin-bottom:8px">When Dom has Black</h3>
+      <p style="font-size:13px;color:#64748b;margin-bottom:8px">He <strong style="color:#e2e8f0">always</strong> plays 1...c5 vs 1.e4, and 1...g6 vs 1.d4.</p>
+      <div class="dom-tip" style="border-left-color:#10b981;background:#011a11">
+        <div class="tip-title" style="color:#86efac">Your plan — stick to 1.d4:</div>
+        <div class="dom-line">1.d4 → c4 → Nc3 → Nf3 → Bg5</div>
+        <div class="tip-body" style="color:#86efac">Dom will play g6 or c5. Your existing 1.d4 system handles both perfectly. Don't switch to 1.e4 — that walks into his preparation.</div>
+      </div>
+    </div>
+
+    <!-- Dom's Prep Drills -->
+    <div class="card">
+      <h2>🎯 Dom Prep Checklist</h2>
+      <p style="font-size:13px;color:#64748b;margin-bottom:16px">One-time and weekly tasks to prepare for the match. Tap to mark done.</p>
+
+      <div class="dom-prep-check" onclick="toggleDomPrep('scotch')" id="dom-check-scotch">
+        <div class="dom-check-box" id="dom-box-scotch"></div>
+        <div>
+          <div class="dom-prep-label">📗 Learn Scotch Defense for Black</div>
+          <div class="dom-prep-desc">One 20-min session: 1.e4 e5 2.Nf3 Nc6 3.d4 exd4 4.Nxd4 Nf6 5.Nxc6 bxc6 → d5, Bd6. <em>Do this once.</em></div>
+        </div>
+      </div>
+      <div class="dom-prep-check" onclick="toggleDomPrep('domgames')" id="dom-check-domgames">
+        <div class="dom-check-box" id="dom-box-domgames"></div>
+        <div>
+          <div class="dom-prep-label">🔍 Review one of Dom's recent games</div>
+          <div class="dom-prep-desc">Chess.com: Mr_noochie · Watch for early piece drops and queen overextensions. Once per week.</div>
+        </div>
+      </div>
+      <div class="dom-prep-check" onclick="toggleDomPrep('timedend')" id="dom-check-timedend">
+        <div class="dom-check-box" id="dom-box-timedend"></div>
+        <div>
+          <div class="dom-prep-label">⏱️ Timed endgame drill on Lichess</div>
+          <div class="dom-prep-desc">Lichess → Learn → Endgames, clock on. 10 min. Practice converting with an advantage fast.</div>
+        </div>
+      </div>
+      <div class="dom-prep-check" onclick="toggleDomPrep('simplify')" id="dom-check-simplify">
+        <div class="dom-check-box" id="dom-box-simplify"></div>
+        <div>
+          <div class="dom-prep-label">♻️ Simplify when ahead drill</div>
+          <div class="dom-prep-desc">Play a 5-min game with one goal: the moment you're up material, trade queens immediately. No hero moves.</div>
+        </div>
+      </div>
+      <div class="dom-prep-check" onclick="toggleDomPrep('simulation')" id="dom-check-simulation">
+        <div class="dom-check-box" id="dom-box-simulation"></div>
+        <div>
+          <div class="dom-prep-label">🎮 Match simulation session</div>
+          <div class="dom-prep-desc">Play 3 5-min games pretending Dom is on the other side: always 1.e4 as White, always c5 as Black. Week before the match.</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;margin-top:8px">
+        <button class="btn btn-sm btn-ghost" onclick="resetDomPrep()">Reset prep list</button>
+        <span id="dom-save-msg" style="font-size:13px;color:#f59e0b;display:none">✓ Saved!</span>
+      </div>
+    </div>
+
+    <!-- Dom's 5 Weaknesses -->
+    <div class="card">
+      <h2>🎯 Dom's 5 Weaknesses — Exploit These</h2>
+      <div class="weakness-list">
+        <div class="weakness-item">
+          <div class="weakness-num">1</div>
+          <div class="weakness-text"><strong style="color:#e2e8f0">Drops material early.</strong> Over a third of his losses come from hanging a piece in the first 15 moves. Just develop, castle, keep things protected — and wait. He'll create the problem himself.</div>
+        </div>
+        <div class="weakness-item">
+          <div class="weakness-num">2</div>
+          <div class="weakness-text"><strong style="color:#e2e8f0">Overextends his queen.</strong> He brings the queen out aggressively, then it gets chased and he loses tempo. Don't panic when the queen appears — just keep your pieces defended.</div>
+        </div>
+        <div class="weakness-item">
+          <div class="weakness-num">3</div>
+          <div class="weakness-text"><strong style="color:#e2e8f0">Delays castling.</strong> He sometimes keeps his king in the center while attacking. If you can open the e or d file, an uncastled Dom king is vulnerable.</div>
+        </div>
+        <div class="weakness-item">
+          <div class="weakness-num">4</div>
+          <div class="weakness-text"><strong style="color:#e2e8f0">Passive Sicilian as Black.</strong> His 1...c5 Nc6 setup doesn't break in the center fast enough. Control d5 with Nc3/Bg5 and build slow pressure. He'll run out of ideas.</div>
+        </div>
+        <div class="weakness-item">
+          <div class="weakness-num">5</div>
+          <div class="weakness-text"><strong style="color:#e2e8f0">Endgame struggles.</strong> Dom is not a technical endgame player. If you reach a rook or K+P endgame with any advantage, you should win it — especially if you've been doing timed endgame drills.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Reference Table -->
+    <div class="card">
+      <h2>⚡ Quick Reference</h2>
+      <table class="ref-table">
+        <thead>
+          <tr><th>Situation</th><th>What to do</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>You have White</td><td><span style="color:#10b981;font-weight:700">1.d4</span> → c4 → Nc3 → Nf3 → Bg5. Dom plays g6 or c5 — both handled.</td></tr>
+          <tr><td>Dom has White → 1.e4 e5 2.Nf3 Nc6 3.d4</td><td><span style="color:#10b981;font-weight:700">3...exd4 4.Nxd4 Nf6 5.Nxc6 bxc6 → d5, Bd6</span>. Don't calculate, just play it.</td></tr>
+          <tr><td>Dom has White → 3.Bc4 (Italian)</td><td><span style="color:#10b981;font-weight:700">3...Bc5 → Nc6 → Nf6 → castle</span>. Slow game, Dom's aggression fails.</td></tr>
+          <tr><td>You're up material</td><td><span style="color:#f59e0b;font-weight:700">TRADE QUEENS.</span> Simplify immediately. Every exchange reduces complexity 50%.</td></tr>
+          <tr><td>Complex middlegame</td><td>Pause. Check: is anything hanging? Then find the solid move, not the brilliant one.</td></tr>
+          <tr><td>Dom plays queen aggressively</td><td>Don't panic. Just keep your pieces safe. The queen will run out of squares.</td></tr>
+          <tr><td>Endgame with advantage</td><td>You know K+P opposition and rook behind passed pawns. Use them. Convert fast.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <!-- NOTES LOG TAB -->
+  <div class="tab-content" id="tab-log">
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <h2 style="margin-bottom:0">📝 Session History</h2>
+        <button class="btn btn-sm btn-ghost" onclick="clearAll()" style="margin-top:0">Clear all</button>
+      </div>
+      <div id="log-list">
+        <div class="empty-state">
+          <div class="emoji">🕊️</div>
+          <p>No sessions logged yet.<br>Go to Today and save your first session!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- Rating Modal -->
+<div class="modal-overlay" id="rating-modal">
+  <div class="modal">
+    <h3>Log Your Rating</h3>
+    <p>What's your 5-min rating right now?</p>
+    <input type="number" class="rating-field" id="rating-input" placeholder="1100" min="400" max="3000">
+    <div style="display:flex;gap:10px;justify-content:center">
+      <button class="btn" onclick="saveRating()">Save</button>
+      <button class="btn btn-ghost" onclick="closeRatingModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ─── Data layer ────────────────────────────────────────────
+  const STORE_KEY = 'jan_chess_v1';
+
+  function loadData() {
+    try { return JSON.parse(localStorage.getItem(STORE_KEY)) || { sessions: [], ratings: [] }; }
+    catch(e) { return { sessions: [], ratings: [] }; }
+  }
+
+  function saveData(data) {
+    localStorage.setItem(STORE_KEY, JSON.stringify(data));
+  }
+
+  function todayStr() {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  function formatDate(str) {
+    const d = new Date(str + 'T12:00:00');
+    return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  // ─── Tab switching ──────────────────────────────────────────
+  function showTab(name, btn) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    btn.classList.add('active');
+    if (name === 'progress') renderProgress();
+    if (name === 'log') renderLog();
+    if (name === 'dom') initDomTab();
+  }
+
+  // ─── Today setup ───────────────────────────────────────────
+  const CHECKS = ['puzzles', 'backrank', 'endgame', 'review'];
+  const CHECK_LABELS = { puzzles: 'Puzzles', backrank: 'Back-rank drill', endgame: 'Endgame drill', review: 'Game review' };
+
+  function getTodaySession() {
+    const data = loadData();
+    return data.sessions.find(s => s.date === todayStr()) || null;
+  }
+
+  function loadToday() {
+    const today = todayStr();
+    const d = new Date(today + 'T12:00:00');
+    document.getElementById('today-date').textContent = d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+
+    const session = getTodaySession();
+    const checks = session ? session.checks : {};
+    const notes = session ? session.notes : '';
+
+    CHECKS.forEach(k => {
+      const el = document.getElementById('check-' + k);
+      const box = document.getElementById('box-' + k);
+      if (checks[k]) { el.classList.add('done'); box.textContent = '✓'; }
+      else { el.classList.remove('done'); box.textContent = ''; }
+    });
+    document.getElementById('today-notes').value = notes;
+    updateProgress(checks);
+  }
+
+  function toggleCheck(key) {
+    const data = loadData();
+    let session = data.sessions.find(s => s.date === todayStr());
+    if (!session) {
+      session = { date: todayStr(), checks: {}, notes: '', rating: null };
+      data.sessions.push(session);
+    }
+    session.checks[key] = !session.checks[key];
+    saveData(data);
+    loadToday();
+  }
+
+  function updateProgress(checks) {
+    const done = CHECKS.filter(k => checks[k]).length;
+    const pct = Math.round((done / CHECKS.length) * 100);
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('progress-text').textContent = done + '/' + CHECKS.length;
+  }
+
+  function saveToday() {
+    const data = loadData();
+    let session = data.sessions.find(s => s.date === todayStr());
+    if (!session) {
+      session = { date: todayStr(), checks: {}, notes: '', rating: null };
+      data.sessions.push(session);
+    }
+    session.notes = document.getElementById('today-notes').value.trim();
+    saveData(data);
+    const msg = document.getElementById('save-msg');
+    msg.style.display = 'inline';
+    setTimeout(() => msg.style.display = 'none', 2000);
+  }
+
+  // ─── Rating modal ───────────────────────────────────────────
+  function openRatingModal() {
+    document.getElementById('rating-modal').classList.add('open');
+    document.getElementById('rating-input').focus();
+  }
+  function closeRatingModal() {
+    document.getElementById('rating-modal').classList.remove('open');
+  }
+  function saveRating() {
+    const val = parseInt(document.getElementById('rating-input').value);
+    if (!val || val < 400 || val > 3000) return;
+    const data = loadData();
+    let session = data.sessions.find(s => s.date === todayStr());
+    if (!session) {
+      session = { date: todayStr(), checks: {}, notes: '', rating: null };
+      data.sessions.push(session);
+    }
+    session.rating = val;
+    if (!data.ratings) data.ratings = [];
+    data.ratings = data.ratings.filter(r => r.date !== todayStr());
+    data.ratings.push({ date: todayStr(), rating: val });
+    data.ratings.sort((a, b) => a.date.localeCompare(b.date));
+    saveData(data);
+    const badge = document.getElementById('current-rating-btn');
+    badge.textContent = '⭐ ' + val;
+    closeRatingModal();
+    document.getElementById('rating-input').value = '';
+  }
+
+  // ─── Rating modal keyboard ──────────────────────────────────
+  document.getElementById('rating-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') saveRating();
+    if (e.key === 'Escape') closeRatingModal();
+  });
+  document.getElementById('rating-modal').addEventListener('click', e => {
+    if (e.target === document.getElementById('rating-modal')) closeRatingModal();
+  });
+
+  // ─── Progress tab ───────────────────────────────────────────
+  function renderProgress() {
+    const data = loadData();
+    const sessions = data.sessions || [];
+    const ratings = data.ratings || [];
+
+    // Stats
+    const total = sessions.filter(s => Object.values(s.checks || {}).some(Boolean) || s.notes).length;
+    document.getElementById('stat-sessions').textContent = total;
+
+    // Streak
+    const streak = calcStreak(sessions);
+    document.getElementById('stat-streak').textContent = streak;
+
+    // Current rating
+    const lastRating = ratings.length ? ratings[ratings.length - 1].rating : null;
+    document.getElementById('stat-rating').textContent = lastRating || '—';
+    if (lastRating) {
+      document.getElementById('current-rating-btn').textContent = '⭐ ' + lastRating;
+    }
+
+    // Goal progress (1067 → 1250)
+    if (lastRating) {
+      const pct = Math.min(100, Math.max(0, ((lastRating - 1067) / (1250 - 1067)) * 100));
+      document.getElementById('goal-progress').style.width = pct + '%';
+    }
+
+    // Chart
+    renderChart(ratings);
+
+    // Week grid (last 7 days)
+    const grid = document.getElementById('week-grid');
+    grid.innerHTML = '';
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const ds = d.toISOString().slice(0, 10);
+      const s = sessions.find(x => x.date === ds);
+      const done = s && Object.values(s.checks || {}).some(Boolean);
+      const label = d.toLocaleDateString('en-GB', { weekday: 'short' });
+      const isToday = ds === todayStr();
+      grid.innerHTML += `
+        <div style="text-align:center">
+          <div style="font-size:11px;color:#64748b;margin-bottom:4px">${label}</div>
+          <div style="width:40px;height:40px;border-radius:8px;background:${done ? '#022c22' : '#0f172a'};border:2px solid ${done ? '#10b981' : isToday ? '#334155' : '#1e293b'};display:flex;align-items:center;justify-content:center;font-size:18px;${isToday ? 'box-shadow:0 0 0 2px #334155' : ''}">
+            ${done ? '✓' : isToday ? '·' : ''}
+          </div>
+        </div>`;
+    }
+  }
+
+  function calcStreak(sessions) {
+    let streak = 0;
+    const d = new Date();
+    for (let i = 0; i < 365; i++) {
+      const ds = d.toISOString().slice(0, 10);
+      const s = sessions.find(x => x.date === ds);
+      const active = s && (Object.values(s.checks || {}).some(Boolean) || s.notes);
+      if (active) { streak++; d.setDate(d.getDate() - 1); }
+      else if (i === 0) { d.setDate(d.getDate() - 1); } // allow today to not count yet
+      else break;
+    }
+    return streak;
+  }
+
+  function renderChart(ratings) {
+    const svg = document.getElementById('rating-svg');
+    const empty = document.getElementById('chart-empty');
+    if (!ratings || ratings.length < 2) {
+      svg.style.display = 'none';
+      empty.style.display = 'block';
+      return;
+    }
+    svg.style.display = 'block';
+    empty.style.display = 'none';
+
+    const W = 820, H = 160, PAD = { top: 20, bottom: 30, left: 45, right: 20 };
+    const vals = ratings.map(r => r.rating);
+    const minV = Math.min(...vals) - 20;
+    const maxV = Math.max(...vals) + 20;
+    const n = ratings.length;
+
+    const px = i => PAD.left + (i / (n - 1)) * (W - PAD.left - PAD.right);
+    const py = v => PAD.top + (1 - (v - minV) / (maxV - minV)) * (H - PAD.top - PAD.bottom);
+
+    // Grid lines
+    let lines = '';
+    const steps = 4;
+    for (let i = 0; i <= steps; i++) {
+      const v = minV + (i / steps) * (maxV - minV);
+      const y = py(v);
+      lines += `<line x1="${PAD.left}" y1="${y}" x2="${W - PAD.right}" y2="${y}" stroke="#1e293b" stroke-width="1"/>`;
+      lines += `<text x="${PAD.left - 6}" y="${y + 4}" text-anchor="end" fill="#475569" font-size="11">${Math.round(v)}</text>`;
+    }
+
+    // Path
+    const pts = ratings.map((r, i) => `${px(i)},${py(r.rating)}`).join(' ');
+    const areaBot = py(minV);
+    const areaPts = `${px(0)},${areaBot} ${pts} ${px(n-1)},${areaBot}`;
+
+    // Dots and labels
+    let dots = '';
+    ratings.forEach((r, i) => {
+      const x = px(i), y = py(r.rating);
+      dots += `<circle cx="${x}" cy="${y}" r="4" fill="#10b981" stroke="#0f172a" stroke-width="2"/>`;
+      if (i === 0 || i === n - 1) {
+        dots += `<text x="${x}" y="${y - 10}" text-anchor="middle" fill="#10b981" font-size="11" font-weight="bold">${r.rating}</text>`;
+      }
+    });
+
+    // X labels (show first and last, and every ~3rd)
+    let xlabels = '';
+    ratings.forEach((r, i) => {
+      if (i === 0 || i === n - 1 || (n > 5 && i % Math.ceil(n / 5) === 0)) {
+        const d = new Date(r.date + 'T12:00:00');
+        const label = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+        xlabels += `<text x="${px(i)}" y="${H - 2}" text-anchor="middle" fill="#475569" font-size="10">${label}</text>`;
+      }
+    });
+
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    svg.innerHTML = `
+      <defs>
+        <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#10b981" stop-opacity="0.3"/>
+          <stop offset="100%" stop-color="#10b981" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      ${lines}
+      <polygon points="${areaPts}" fill="url(#areaGrad)"/>
+      <polyline points="${pts}" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+      ${dots}
+      ${xlabels}
+    `;
+  }
+
+  // ─── Log tab ────────────────────────────────────────────────
+  function renderLog() {
+    const data = loadData();
+    const sessions = (data.sessions || []).slice().reverse();
+    const list = document.getElementById('log-list');
+    if (!sessions.length) {
+      list.innerHTML = '<div class="empty-state"><div class="emoji">🕊️</div><p>No sessions logged yet.<br>Go to Today and save your first session!</p></div>';
+      return;
+    }
+    list.innerHTML = sessions.map(s => {
+      const chips = Object.entries(s.checks || {}).filter(([,v]) => v).map(([k]) =>
+        `<span class="log-check-chip">${CHECK_LABELS[k]}</span>`).join('');
+      const ratingSpan = s.rating ? `<span class="log-rating">⭐ ${s.rating}</span>` : '';
+      const notesHtml = s.notes ? `<div class="log-text" style="margin-top:8px">${s.notes}</div>` : '';
+      if (!chips && !s.notes && !s.rating) return '';
+      return `
+        <div class="log-entry">
+          <div class="log-date">${formatDate(s.date)}${ratingSpan}</div>
+          ${chips ? `<div class="log-checks">${chips}</div>` : ''}
+          ${notesHtml}
+        </div>`;
+    }).join('');
+  }
+
+  function clearAll() {
+    if (confirm('Delete all session data? This cannot be undone.')) {
+      localStorage.removeItem(STORE_KEY);
+      loadToday();
+      renderLog();
+    }
+  }
+
+  // ─── Beat Dom tab ────────────────────────────────────────────
+  const DOM_MATCH_DATE = '2026-08-18';
+  const DOM_PREP_KEYS = ['scotch','domgames','timedend','simplify','simulation'];
+
+  function getDomData() {
+    const d = loadData();
+    if (!d.domPrep) d.domPrep = {};
+    return d;
+  }
+
+  function initDomTab() {
+    // Countdown
+    const match = new Date(DOM_MATCH_DATE + 'T12:00:00');
+    const now = new Date();
+    const msLeft = match - now;
+    const daysLeft = Math.max(0, Math.ceil(msLeft / 86400000));
+    const weeksLeft = Math.max(0, Math.floor(daysLeft / 7));
+    const sessionsLeft = Math.max(0, daysLeft); // ~1 session/day potential
+    document.getElementById('cd-days').textContent = daysLeft;
+    document.getElementById('cd-weeks').textContent = weeksLeft;
+    document.getElementById('cd-sessions').textContent = Math.min(sessionsLeft, daysLeft * 2 / 3 | 0);
+
+    // Load prep checkboxes
+    const d = getDomData();
+    DOM_PREP_KEYS.forEach(k => {
+      const el = document.getElementById('dom-check-' + k);
+      const box = document.getElementById('dom-box-' + k);
+      if (d.domPrep[k]) { el.classList.add('done'); box.textContent = '✓'; }
+      else { el.classList.remove('done'); box.textContent = ''; }
+    });
+  }
+
+  function toggleDomPrep(key) {
+    const d = getDomData();
+    d.domPrep[key] = !d.domPrep[key];
+    saveData(d);
+    initDomTab();
+    const msg = document.getElementById('dom-save-msg');
+    msg.style.display = 'inline';
+    setTimeout(() => msg.style.display = 'none', 1500);
+  }
+
+  function resetDomPrep() {
+    if (confirm('Reset all Dom prep checkboxes?')) {
+      const d = loadData();
+      d.domPrep = {};
+      saveData(d);
+      initDomTab();
+    }
+  }
+
+  // ─── Init ────────────────────────────────────────────────────
+  loadToday();
+  const lastRating = (loadData().ratings || []).slice(-1)[0];
+  if (lastRating) document.getElementById('current-rating-btn').textContent = '⭐ ' + lastRating.rating;
+</script>
+</body>
+</html>
